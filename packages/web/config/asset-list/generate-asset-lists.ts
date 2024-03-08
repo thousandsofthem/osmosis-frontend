@@ -10,36 +10,16 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import type {
-  Asset,
-  AssetList,
-  Chain,
-  ChainList,
-  IbcTransferMethod,
-} from "@osmosis-labs/types";
+import type { Asset, AssetList, Chain, ChainList, IbcTransferMethod } from "@osmosis-labs/types";
 import * as fs from "fs";
 import path from "path";
 // eslint-disable-next-line import/no-extraneous-dependencies
 import * as prettier from "prettier";
 
-import {
-  ASSET_LIST_COMMIT_HASH,
-  GITHUB_API_TOKEN,
-  IS_TESTNET,
-  OSMOSIS_CHAIN_ID_OVERWRITE,
-  OSMOSIS_CHAIN_NAME_OVERWRITE,
-} from "~/config/env";
-import {
-  queryGithubFile,
-  queryLatestCommitHash,
-} from "~/server/queries/github";
+import { ASSET_LIST_COMMIT_HASH, GITHUB_API_TOKEN, IS_TESTNET, OSMOSIS_CHAIN_ID_OVERWRITE, OSMOSIS_CHAIN_NAME_OVERWRITE } from "~/config/env";
+import { queryGithubFile, queryLatestCommitHash } from "~/server/queries/github";
 
-import {
-  getChainList,
-  getImageRelativeFilePath,
-  getOsmosisChainId,
-  saveAssetImageToTokensDir,
-} from "./utils";
+import { getChainList, getImageRelativeFilePath, getOsmosisChainId, saveAssetImageToTokensDir } from "./utils";
 
 interface ResponseAssetList {
   chainName: string;
@@ -48,13 +28,7 @@ interface ResponseAssetList {
 
 const repo = "osmosis-labs/assetlists";
 
-function getFilePath({
-  chainId,
-  fileType,
-}: {
-  chainId: string;
-  fileType: "assetlist" | "chainlist";
-}) {
+function getFilePath({ chainId, fileType }: { chainId: string; fileType: "assetlist" | "chainlist" }) {
   // TEMPORARY
   // use legacy chain list
   if (fileType === "chainlist") {
@@ -93,12 +67,12 @@ async function generateChainListFile({
           },
         ]
       : []),
+    ...[{ chain_id: "shielded-expedition.88f17d1d14", chain_name: "Namada" }],
   ];
 
   let content: string = "";
 
-  const chainIdTypeName =
-    environment === "mainnet" ? "MainnetChainIds" : "TestnetChainIds";
+  const chainIdTypeName = environment === "mainnet" ? "MainnetChainIds" : "TestnetChainIds";
 
   if (!onlyTypes) {
     content += `
@@ -159,29 +133,17 @@ async function generateChainListFile({
   }
 }
 
-function createOrAddToAssetList(
-  assetList: AssetList[],
-  chain: Chain,
-  asset: Asset,
-  environment: "testnet" | "mainnet"
-): AssetList[] {
-  const assetlistIndex = assetList.findIndex(
-    ({ chain_name }) => chain_name === chain.chain_name
-  );
+function createOrAddToAssetList(assetList: AssetList[], chain: Chain, asset: Asset, environment: "testnet" | "mainnet"): AssetList[] {
+  const assetlistIndex = assetList.findIndex(({ chain_name }) => chain_name === chain.chain_name);
 
   const isOsmosis = chain.chain_id === getOsmosisChainId(environment);
 
-  const chainId = isOsmosis
-    ? OSMOSIS_CHAIN_ID_OVERWRITE ?? chain.chain_id
-    : chain.chain_id;
+  const chainId = isOsmosis ? OSMOSIS_CHAIN_ID_OVERWRITE ?? chain.chain_id : chain.chain_id;
   const chainName = chain.chain_name;
 
   const augmentedAsset: Asset = {
     ...asset,
-    relative_image_url: getImageRelativeFilePath(
-      asset.logoURIs.svg ?? asset.logoURIs.png!,
-      asset.symbol
-    ),
+    relative_image_url: getImageRelativeFilePath(asset.logoURIs.svg ?? asset.logoURIs.png!, asset.symbol),
   };
 
   if (assetlistIndex === -1) {
@@ -266,11 +228,11 @@ async function generateAssetListFile({
         assetLists,
         null,
         2
-      )};    
+      )};
     `;
   }
 
-  content += `    
+  content += `
     export type ${
       environment === "testnet" ? "TestnetAssetSymbols" : "MainnetAssetSymbols"
     } = ${Array.from(new Set(assetList.assets.map((asset) => asset.symbol)))
@@ -449,8 +411,7 @@ async function main() {
     });
   }
 
-  if (!mainnetAssetLists || !testnetAssetLists)
-    throw new Error("Failed to generate asset lists");
+  if (!mainnetAssetLists || !testnetAssetLists) throw new Error("Failed to generate asset lists");
 
   /**
    * If testnet, generate testnet chain list first to avoid overwriting the mainnet types.

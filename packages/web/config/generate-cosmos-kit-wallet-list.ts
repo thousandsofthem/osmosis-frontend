@@ -4,6 +4,7 @@ import { cosmostationExtensionInfo } from "@cosmos-kit/cosmostation-extension";
 import { keplrExtensionInfo } from "@cosmos-kit/keplr-extension";
 import { keplrMobileInfo } from "@cosmos-kit/keplr-mobile";
 import { leapExtensionInfo } from "@cosmos-kit/leap-extension";
+import { namadaExtensionInfo } from "@cosmos-kit/namada-extension";
 import { LeapMobileInfo as leapMobileInfo } from "@cosmos-kit/leap-mobile";
 import { OkxwalletExtensionInfo as okxWalletExtensionInfo } from "@cosmos-kit/okxwallet-extension";
 import { stationExtensionInfo } from "@cosmos-kit/station-extension";
@@ -23,6 +24,7 @@ const CosmosKitWalletList = [
   okxWalletExtensionInfo,
   xdefiExtensionInfo,
   stationExtensionInfo,
+  namadaExtensionInfo,
 ];
 
 function isObject(value: any): value is Record<any, any> {
@@ -77,7 +79,8 @@ async function generateCosmosKitWalletList() {
    */
   const registryObject = CosmosKitWalletList.reduce((acc, w) => {
     w.logo = ""; // We'll override the logos in wallet-registry.ts
-    acc[w.name] = w;
+    // TODO revert change
+    acc[w.name] = w as any;
     return acc;
   }, {} as Record<string, Wallet>);
 
@@ -88,7 +91,7 @@ async function generateCosmosKitWalletList() {
       ).join(",")}}
       export const CosmosKitWalletList: Record<AvailableWallets, Wallet> = ${getStringifiedWallet(
         registryObject
-      )}     
+      )}
     `;
 
   const prettierConfig = await prettier.resolveConfig("./");
